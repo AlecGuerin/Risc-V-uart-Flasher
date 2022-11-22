@@ -27,7 +27,7 @@ FILE *settings_file;
 FILE *programs_file;
 FILE *results_file;
 
-void main(void)
+int main(void)
 {
     int index=0;
 
@@ -40,7 +40,7 @@ void main(void)
     if (settings_file == 0)
     {
         printf("Settings file not found\n\r");
-        return;
+        return 0;
     }
     fscanf(settings_file, "Port: %s\n", port_name);
     fscanf(settings_file, "Programs number: %s\n", int_string);
@@ -124,17 +124,18 @@ void main(void)
             else if (string[0] == 'N')
             {
                 printf("Aborted. Goodbye!\n\r");
-                return;
+                return 0;
             }
             else{
                 printf("Command not recognized. Goodbye!\n\r");
-                return;
+                return 0;
             }
         }
     }
     fclose(programs_file);
     fclose(results_file);
     serial_port_close();
+    return 1;
 }
 
 typedef enum
@@ -171,10 +172,10 @@ int Send_program(char *program_string, const unsigned int program_size)
             break;
         case transmit:
         
-            serial_port_write_data(program_string, program_size);
-            /*for (int i = 0; i < program_size; i ++){
-                serial_port_write(&program_string[i]); // transmit the program
-            }*/
+        //    serial_port_write_data(program_string, program_size);
+            for (int i = 0; i < program_size; i ++){
+                serial_port_write_byte(program_string[i]); // transmit the program
+            }
             //serial_port_write(program_string); // transmit the program
             comms_state = confirm;
             // Skip the checking
