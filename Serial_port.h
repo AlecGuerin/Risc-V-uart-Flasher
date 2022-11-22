@@ -27,10 +27,29 @@ int serial_port_init(char *port_name, unsigned int baudrate, unsigned int parity
 */
 void serial_port_write(char* msg);
 
+/**
+ * @brief  Send one byte.
+ * 
+ * @param msg byte to send.
+ */
+void serial_port_write_byte(char msg);
+
+/**
+ * @brief Send the message of the expected size.
+ * 
+ * @param msg Message to send.
+ * @param size Message size.
+ */
+void serial_port_write_data(char *msg, int size);
+
+
 /*@brief: Reads a string from the port 
 *
 */
 size_t serial_port_read(char *msg,size_t length);
+
+
+
 
 
 void serial_port_close(void);

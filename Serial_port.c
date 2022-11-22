@@ -92,6 +92,16 @@ void serial_port_write(char *msg)
     write(serial_port, msg, strlen(msg));
 }
 
+void serial_port_write_byte(char msg)
+{
+    write(serial_port, &msg, 1);
+}
+
+void serial_port_write_data(char *msg, int size)
+{
+    write(serial_port, msg, size);
+}
+
 size_t serial_port_read(char *msg,size_t length)
 {
     return read(serial_port, msg, length);

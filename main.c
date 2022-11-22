@@ -170,11 +170,16 @@ int Send_program(char *program_string, const unsigned int program_size)
             comms_state = transmit;
             break;
         case transmit:
-            serial_port_write(program_string); // transmit the program
-            //comms_state = confirm;
+        
+            serial_port_write_data(program_string, program_size);
+            /*for (int i = 0; i < program_size; i ++){
+                serial_port_write(&program_string[i]); // transmit the program
+            }*/
+            //serial_port_write(program_string); // transmit the program
+            comms_state = confirm;
             // Skip the checking
-            comms_success = 1;
-            comms_state = end;
+            //comms_success = 1;
+            //comms_state = end;
             break;
         case confirm:
             serial_port_read(input, sizeof(input)); // wait for Y'A'
@@ -221,12 +226,20 @@ int Send_expected_result(char result[4])
             serial_port_write("="); // start the process
             /*Send the number of bytes of the program in 4 bytes */
             sprintf(string, "%c%c%c%c", result[3], result[2], result[1], result[0]);
-            serial_port_write(string);
-            //comms_state = confirm;
+            //serial_port_write(string);
+
+            //serial_port_write_data(string, 4);
+
+            for(int i = 0; i < 4 ; i ++){
+                char tmp = result[i];
+                serial_port_write_byte(tmp);
+                //serial_port_write(tmp);
+            }
+            comms_state = confirm;
 
             // Skip the checking
-            comms_state = end; 
-            comms_success = 1;
+            //comms_state = end; 
+            //comms_success = 1;
             break;
         case confirm:
             serial_port_read(input, sizeof(input)); // wait for Y'A'
