@@ -55,7 +55,7 @@ FILE *results_file;
 \|___ \  \_| \ \  \\\  \   \ \   __/|        \ \  \___|    \ \  \|\  \   \ \  \_|\ \   \ \   __/|            \ \  \    \ \  \   \ \  \   \|___ \  \_| \ \  \\\  \   \ \  \|\  \   \ \  \\\  \   \|___ \  \_|
      \ \  \   \ \   __  \   \ \  \_|/__       \ \  \        \ \  \\\  \   \ \  \ \\ \   \ \  \_|/__           \ \  \  __\ \  \   \ \  \       \ \  \   \ \   __  \   \ \  \\\  \   \ \  \\\  \       \ \  \
       \ \  \   \ \  \ \  \   \ \  \_|\ \       \ \  \____    \ \  \\\  \   \ \  \_\\ \   \ \  \_|\ \           \ \  \|\__\_\  \   \ \  \       \ \  \   \ \  \ \  \   \ \  \\\  \   \ \  \\\  \       \ \  \
-       \ \__\   \ \__\ \__\   \ \_______\       \ \_______\   \ \_______\   \ \_______\   \ \_______\           \ \____________\   \ \__\       \ \__\   \ \__\ \__\   \ \_______\   \ \_______\       \ \__\
+       \ \__\   \ \__\ \__\   \ \_______\       \ \_______\   \ \y\   \ \_______\   \ \_______\           \ \____________\   \ \__\       \ \__\   \ \__\ \__\   \ \_______\   \ \_______\       \ \__\
         \|__|    \|__|\|__|    \|_______|        \|_______|    \|_______|    \|_______|    \|_______|            \|____________|    \|__|        \|__|    \|__|\|__|    \|_______|    \|_______|        \|__|
 
 
@@ -128,8 +128,6 @@ int main(void)
             if (Send_expected_result(data) == 1)
             {
                 printf("Result no:%u transfer success\n\r", index);
-
-                return 0;
             }
             else
             {
@@ -155,7 +153,6 @@ int main(void)
             if (Send_program(data, file_size) == 1)
             {
                 printf("Program no:%u transfer success!\n\r", index);
-                free(data);
                 index++;
             }
             else
@@ -211,9 +208,20 @@ int Send_program(char *program_string, const unsigned int program_size)
         case init:
             /*Send the number of bytes of the program in 4 bytes */
             serial_port_write("$"); // start the process
-            sprintf(string, "%c%c%c%c", 0xFF & (program_size >> 3), 0xFF & (program_size >> 2), 0xFF & (program_size >> 1), 0xFF & (program_size));        
-            serial_port_write(string);
-            printf("Prog. size TX :%u:\n\r",program_size);
+
+            int program_size_small=(int)(program_size/4.0);
+
+         //   sprintf(string, "%c%c%c%c", 0xFF & (program_size), 0xFF & (program_size >> 8), 0xFF & (program_size >> 16), 0xFF & (program_size>> 24));        
+        
+            printf("Prog. size TX: ");    
+            
+            for(int i=0; i<4; i++)
+            {
+                serial_port_write_byte(0xFF & program_size_small >> (i*8));
+                printf("%u:",program_size_small >> (i*8));    
+            }
+        
+            printf("\n\r");  
             comms_state = transmit;
             break;
         case transmit:
@@ -244,7 +252,7 @@ int Send_program(char *program_string, const unsigned int program_size)
                 break;
             }
             /*Uncomment this line to keep sending the file until timeout */
-          //  comms_state = init;
+            comms_state = init;
             break;
         case end:
             break;
@@ -300,7 +308,7 @@ int Send_expected_result(char result[4])
                 break;
             }
             //uncomment to continue sending until timeout
-            //comms_state = transmit;
+            comms_state = transmit;
             break;
         case end:
             break;
