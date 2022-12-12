@@ -138,22 +138,20 @@ int main(void)
 
 
             /*******************************************************Send program --- start**********************************************************/
-            Get_data_size(program_file_name);
+            file_size = Get_data_size(program_file_name);
             if (file_size == -1)
             {
                 printf("Program file %u not found!\n\r", index);
                 printf("Aborted. Goodbye!\n\r");
                 return 0;
-            }
-
-            file_size = Get_data_size(program_file_name);
+            }            
             data = (unsigned char *)malloc(file_size);
             File_to_bytes(program_file_name, data, file_size);
 
             if (Send_program(data, file_size) == 1)
             {
                 printf("Program no:%u transfer success!\n\r", index);
-                index++;
+                //index++;
             }
             else
             {
@@ -161,6 +159,25 @@ int main(void)
             }
             free(data);
               /**********************************************************Send program --- end**********************************************************/
+            /*file_size = Get_data_size(results_file_name);
+            if (file_size == -1)
+            {
+                printf("Results file %u not found!\n\r", index);
+                printf("Aborted. Goodbye!\n\r");
+                return 0;
+            }
+            data = (unsigned char *)malloc(file_size);
+            File_to_bytes(results_file_name, data, file_size);
+            
+            if (Send_expected_result(data) == 1)
+            {
+                printf("Result no:%u transfer success\n\r", index);
+            }
+            else
+            {
+                printf("Result no:%u transfer failure\n\r", index);
+            }
+            free(data);*/
         }
         else if (string[0] == 'N')
         {
@@ -209,10 +226,9 @@ int Send_program(char *program_string, const unsigned int program_size)
             /*Send the number of bytes of the program in 4 bytes */
             serial_port_write("$"); // start the process
 
-            int program_size_small=(int)(program_size/4.0);
+            int program_size_small=program_size-1;
 
-         //   sprintf(string, "%c%c%c%c", 0xFF & (program_size), 0xFF & (program_size >> 8), 0xFF & (program_size >> 16), 0xFF & (program_size>> 24));        
-        
+       //    sprintf(string, "%c%c%c%c", 0xFF & (program_size), 0xFF & (program_size >> 8), 0xFF & (program_size >> 16), 0xFF & (program_size>> 24));               
             printf("Prog. size TX: ");    
             
             for(int i=0; i<4; i++)
@@ -233,8 +249,14 @@ int Send_program(char *program_string, const unsigned int program_size)
             {
                 serial_port_write_byte(program_string[i]); // transmit the program
                 printf(BYTE_TO_BINARY_PATTERN"\t%c\n\r", BYTE_TO_BINARY(program_string[i]),program_string[i]);
+                /*serial_port_read(input, sizeof(input)); // wait for Y'A'
+                 if (input[0] == 'A')
+                {
+                    printf("error&((((((((((((((((((((((((((((((((((((((((((((((((("); 
+                }*/
             }
-            printf("\n\rProg.data TX  -- end.\n\r");
+            timestamp=time(NULL); //remov dis
+            printf("Prog.data TX  -- end.\n\r");
             comms_state = confirm;
             break;
         case confirm:
@@ -243,9 +265,10 @@ int Send_program(char *program_string, const unsigned int program_size)
             {
                 comms_success = 1;
                 comms_state = end;
+                printf("rcvd input:%s",input);
                 break;
             }
-            if (time(NULL) - timestamp > 2)
+            if (time(NULL) - timestamp > 5)
             {
                 comms_success = 0;
                 comms_state = end;
@@ -287,8 +310,8 @@ int Send_expected_result(char result[4])
             for (int i = 0; i < 4; i++)
             {
                 serial_port_write_byte(result[i]);
-            
-                printf("%u ",(unsigned int)result[i]);   
+                printf("%u ",(unsigned int)result[i]); 
+               
             }
              printf("  --\n\r");
             comms_state = confirm;
@@ -297,18 +320,19 @@ int Send_expected_result(char result[4])
             serial_port_read(input, sizeof(input)); // wait for Y'A'
             if (input[0] == 'A')
             {
+                printf("rcvd input:%s",input);
                 comms_success = 1;
                 comms_state = end;
                 break;
             }
-            if (time(NULL) - timestamp > 2)
+            if (time(NULL) - timestamp > 10)
             {
                 comms_success = 0;
                 comms_state = end;
                 break;
             }
             //uncomment to continue sending until timeout
-            comms_state = transmit;
+           comms_state = transmit;
             break;
         case end:
             break;
