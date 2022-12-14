@@ -102,9 +102,14 @@ int main(void)
     while (index <= programs_number)
     {
 
-        printf("Transmit program no %u ?  Y/N: ", index);
+        printf("Transmit program no %u ?  Y/N/R: ", index);
         memset(string, 0, 20);
         scanf("%s", string);
+        if ((string[0] == 'R' || string[0] == 'r') && index != 0){
+            index --;
+            string[0] = 'y';
+
+        }
         if (string[0] == 'Y' || string[0] == 'y')
         {
             //Set the file names and directories
@@ -307,10 +312,11 @@ int Send_expected_result(char result[4])
             /*Send the number of bytes of the program in 4 bytes */
             printf("Result.data TX:  --  ");        
         
-            for (int i = 0; i < 4; i++)
+            //for (int i = 0; i < 4; i++)
+            for (int i = 3; i >= 0; i--)
             {
                 serial_port_write_byte(result[i]);
-                printf("%u ",(unsigned int)result[i]); 
+                printf("%u ",(unsigned char)result[i]); 
                
             }
              printf("  --\n\r");
